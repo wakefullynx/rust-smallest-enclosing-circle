@@ -1,5 +1,9 @@
 [package]
 name = "smallest-enclosing-circle"
+description = "Iterative and recursive two-dimensional implementations of Welzl's algorithm for computing the smallest enclosing circle."
+license = "MIT"
+repository = "https://github.com/wakefullynx/rust-smallest-enclosing-circle"
+
 version = "0.1.0"
 edition = "2021"
 

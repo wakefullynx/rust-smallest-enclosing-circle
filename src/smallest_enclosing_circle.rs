@@ -4,6 +4,32 @@ type Point = [f64; 2];
 type CounterClockwise = bool;
 type Radius = f64;
 
+/// Represents a circle, defined by up to three points that are located on its circumference.
+/// 
+/// This enum has four variants:
+/// - None: No circle, i.e., no result.
+/// - One: Circle is defined by a single point (center point), and has radius zero.
+/// - Two: Circle is defined by two points (i.e., the points are located opposite each other on the circle), and the radius is their half-distance.
+/// - Three: Circle is fully define by three points, and additionally holds whether these three points are in counter-clockwise order.
+/// 
+/// # Examples
+/// 
+/// ```
+/// use smallest_enclosing_circle::Circle;
+/// 
+/// let c0 = Circle::None;
+/// let c1 = Circle::One([0., 0.]);
+/// let c2 = Circle::Two([0., 0.], [1., 0.]);
+/// let c3 = Circle::Three([0., 0.], [1., 0.], [1., 1.], true);
+/// println!("C0: Center: {:?}, Radius: {:?};", c0.center(), c0.radius());
+/// // C0: Center: None, Radius: 0.0;
+/// println!("C1: Center: {:?}, Radius: {:?};", c1.center(), c1.radius());
+/// // C1: Center: Some([0.0, 0.0]), Radius: 0.0;
+/// println!("C2: Center: {:?}, Radius: {:?};", c2.center(), c2.radius());
+/// // C2: Center: Some([0.5, 0.0]), Radius: 0.5;
+/// println!("C3: Center: {:?}, Radius: {:?};", c3.center(), c3.radius());
+/// // C3: Center: Some([0.5, 0.5]), Radius: 0.7071067811865476;
+/// ```
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum Circle {
     None,
@@ -100,6 +126,44 @@ enum State {
     S4,
 }
 
+
+/// Takes an iterator over two-dimensional points and returns the smallest [Circle] that encloses all points.
+/// 
+/// Iterative version of Welzl's algorithm, which originally is [recursive](smallest_enclosing_circle_recursive). 
+/// The expected input is an iterator of [f64; 2] coordinate pairs with actual numbers (no NANs or Infinites). Duplicates are allowed. 
+/// Note that the original algorithm is based on randomizing the order of input points. 
+/// This is omitted in this crate, however randomization can be done by the caller in advance.
+/// The advantage over the recursive algorithm is that large problems sizes do not run into call stack problems.
+/// The result is a [Circle] struct, i.e., either one of four options:
+/// - None (i.e., empty input vector)
+/// - Smallest circle is spanned by one point and zero radius (iff input vector has length 1)
+/// - Smallest circle is spanned by two points, with the center halfway between them and radius half their distance
+/// - Smallest circle is spanned by three points, with the center halfway between them and radius half their distance
+/// 
+/// In cases where more than three points lie on the smallest circle, the choice of spanning points is arbitrary. In the same way, the order of spanning points is arbitrary for all [Circle] instances.
+/// 
+/// The implementation is based on the following work:
+/// 
+/// Welzl, E. (1991). Smallest enclosing disks (balls and ellipsoids).
+/// In New results and new trends in computer science (pp. 359-370).
+/// Springer, Berlin, Heidelberg.
+///
+/// 
+/// # Examples
+/// 
+/// ```
+/// use smallest_enclosing_circle::smallest_enclosing_circle;
+/// 
+/// // Input: Four corner points of square box of unit size
+/// let points = Vec::from([[0., 0.], [1., 0.], [1., 1.], [0., 1.]]);
+/// let circle = smallest_enclosing_circle(points.into_iter());
+/// println!("Circle: {:?}", circle);
+/// // Circle: Three([0.0, 1.0], [1.0, 1.0], [1.0, 0.0], false);
+/// println!("Center: {:?}", circle.center());
+/// // Center: Some([0.5, 0.5])
+/// println!("Radius: {:?}", circle.radius());
+/// // Radius: 0.7071067811865476
+/// ```
 pub fn smallest_enclosing_circle<I: Iterator<Item = Point>>(points: I) -> Circle {
     let mut p: Vec<Point> = points.collect();
     let mut r = Vec::new();
@@ -140,16 +204,43 @@ pub fn smallest_enclosing_circle<I: Iterator<Item = Point>>(points: I) -> Circle
     circle
 }
 
+/// Recursive version of [smallest_enclosing_circle] with identical functionality for demonstration purposes only. Use the iterative version.
+/// 
+/// Implementation of Welzl's algorithm. The expected input is an iterator of [f64; 2] coordinate pairs with actual numbers (no NANs or Infinites). Duplicates are allowed. Note that the original algorithm is based on randomizing the order of input points. This is omitted in this crate, however randomization can be done by the caller in advance.
+/// Since the implementation makes recursive calls, for larger problems the call stack will be exceeded. Thus, you should use [smallest_enclosing_circle].
+/// The API behaves the same as well.
+/// 
+/// The implementation is based on the following work:
+/// Welzl, E. (1991). Smallest enclosing disks (balls and ellipsoids).\n
+/// In New results and new trends in computer science (pp. 359-370).
+/// Springer, Berlin, Heidelberg.
+///
+/// 
+/// # Examples
+/// 
+/// ```
+/// use smallest_enclosing_circle::smallest_enclosing_circle_recursive;
+/// 
+/// // Input: Four corner points of square box of unit size
+/// let points = Vec::from([[0., 0.], [1., 0.], [1., 1.], [0., 1.]]);
+/// let circle = smallest_enclosing_circle_recursive(points.into_iter());
+/// println!("Circle: {:?}", circle);
+/// // Circle: Three([0.0, 1.0], [1.0, 1.0], [1.0, 0.0], false);
+/// println!("Center: {:?}", circle.center());
+/// // Center: Some([0.5, 0.5])
+/// println!("Radius: {:?}", circle.radius());
+/// // Radius: 0.7071067811865476
+/// ```
 pub fn smallest_enclosing_circle_recursive<I: Iterator<Item = Point>>(points: I) -> Circle {
     fn recursion(p: &Vec<Point>, r: &Vec<Point>) -> Circle {
         if p.len() == 0 || r.len() == 3 {
             Circle::new(&r)
         } else {
-            let remainder = &mut p.clone().to_vec();
+            let remainder = &mut p.to_vec();
             let element = remainder.pop().unwrap();
             let mut circle = recursion(remainder, r);
             if !is_inside_circle!(element, circle) {
-                let x = &mut r.clone().to_vec();
+                let x = &mut r.to_vec();
                 x.push(element);
                 circle = recursion(remainder, x);
             }
