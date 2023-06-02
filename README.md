@@ -1,4 +1,4 @@
-# Smallest enclosing circle
+# Smallest Enclosing Circle
 
 Iterative and recursive two-dimensional implementations of Welzl's algorithm for computing the smallest enclosing circle.
 
