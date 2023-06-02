@@ -9,7 +9,7 @@ Thus, the iterative implementation in this crate should be preferred.
 However, the recursive version is provided for demonstration purposes.
 
 
-The implementation is based on the following work:
+The implementation is based on the following work(s):
 
 Welzl, E. (1991). Smallest enclosing disks (balls and ellipsoids).
 In New results and new trends in computer science (pp. 359-370).
