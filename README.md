@@ -8,6 +8,7 @@ The original algorithm was formulated as recursive program, which leads to call 
 Thus, the iterative implementation in this crate should be preferred.
 However, the recursive version is provided for demonstration purposes.
 
+*Please note that the expected runtime only holds for randomized inputs (i.e., you may want to shuffle your input stream in advance).*
 
 The implementation is based on the following work(s):
 
