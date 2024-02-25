@@ -16,4 +16,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Publish
-      run: cargo publish --token {{ SECRETS.CARGO_TOKEN }}
+      run: cargo publish --token ${{ SECRETS.CARGO_TOKEN }}
