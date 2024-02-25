@@ -5,18 +5,18 @@ type CounterClockwise = bool;
 type Radius = f64;
 
 /// Represents a circle, defined by up to three points that are located on its circumference.
-/// 
+///
 /// This enum has four variants:
 /// - None: No circle, i.e., no result.
 /// - One: Circle is defined by a single point (center point), and has radius zero.
 /// - Two: Circle is defined by two points (i.e., the points are located opposite each other on the circle), and the radius is their half-distance.
 /// - Three: Circle is fully define by three points, and additionally holds whether these three points are in counter-clockwise order.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use smallest_enclosing_circle::Circle;
-/// 
+///
 /// let c0 = Circle::None;
 /// let c1 = Circle::One([0., 0.]);
 /// let c2 = Circle::Two([0., 0.], [1., 0.]);
@@ -49,22 +49,21 @@ impl Circle {
                 } else {
                     Circle::One(points[0])
                 }
-            },
+            }
             3 => {
                 let [a, b, c] = [points[0], points[1], points[2]];
-                let [ab, bc, ca] = [a == b, b ==c, c ==a];
+                let [ab, bc, ca] = [a == b, b == c, c == a];
                 match (ab, bc, ca) {
                     (true, true, true) => Circle::One(a),
-                    (true, true, false) | (true, false, true) | (false, true, true) => unreachable!(),
+                    (true, true, false) | (true, false, true) | (false, true, true) => {
+                        unreachable!()
+                    }
                     (true, false, false) => Circle::Two(a, c),
                     (false, true, false) => Circle::Two(a, b),
                     (false, false, true) => Circle::Two(b, c),
-                    (false, false, false) => Circle::Three(
-                        a, b, c,
-                        orient2d(a, b, c) > 0.,
-                    ),
+                    (false, false, false) => Circle::Three(a, b, c, orient2d(a, b, c) > 0.),
                 }
-            },
+            }
             _ => {
                 panic!()
             }
@@ -110,8 +109,8 @@ macro_rules! is_inside_circle {
                 incircle(a, b, s, $point) > 0.
             }
             Circle::Three(a, b, c, counter_clockwise) => {
-                (counter_clockwise && incircle(a, b, c, $point) > 0.)
-                    || (!counter_clockwise && incircle(a, c, b, $point) > 0.)
+                (counter_clockwise && incircle(a, b, c, $point) >= 0.)
+                    || (!counter_clockwise && incircle(a, c, b, $point) >= 0.)
             }
         }
     }};
@@ -126,12 +125,11 @@ enum State {
     S4,
 }
 
-
 /// Takes an iterator over two-dimensional points and returns the smallest [Circle] that encloses all points.
-/// 
-/// Iterative version of Welzl's algorithm, which originally is [recursive](smallest_enclosing_circle_recursive). 
-/// The expected input is an iterator of [f64; 2] coordinate pairs with actual numbers (no NANs or Infinites). Duplicates are allowed. 
-/// Note that the original algorithm is based on randomizing the order of input points. 
+///
+/// Iterative version of Welzl's algorithm, which originally is [recursive](smallest_enclosing_circle_recursive).
+/// The expected input is an iterator of [f64; 2] coordinate pairs with actual numbers (no NANs or Infinites). Duplicates are allowed.
+/// Note that the original algorithm is based on randomizing the order of input points.
 /// This is omitted in this crate, however randomization can be done by the caller in advance.
 /// The advantage over the recursive algorithm is that large problems sizes do not run into call stack problems.
 /// The result is a [Circle] struct, i.e., either one of four options:
@@ -139,21 +137,21 @@ enum State {
 /// - Smallest circle is spanned by one point and zero radius (iff input vector has length 1)
 /// - Smallest circle is spanned by two points, with the center halfway between them and radius half their distance
 /// - Smallest circle is spanned by three points, with the center halfway between them and radius half their distance
-/// 
+///
 /// In cases where more than three points lie on the smallest circle, the choice of spanning points is arbitrary. In the same way, the order of spanning points is arbitrary for all [Circle] instances.
-/// 
+///
 /// The implementation is based on the following work:
-/// 
+///
 /// Welzl, E. (1991). Smallest enclosing disks (balls and ellipsoids).
 /// In New results and new trends in computer science (pp. 359-370).
 /// Springer, Berlin, Heidelberg.
 ///
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use smallest_enclosing_circle::smallest_enclosing_circle;
-/// 
+///
 /// // Input: Four corner points of square box of unit size
 /// let points = Vec::from([[0., 0.], [1., 0.], [1., 1.], [0., 1.]]);
 /// let circle = smallest_enclosing_circle(points.into_iter());
@@ -205,22 +203,22 @@ pub fn smallest_enclosing_circle<I: Iterator<Item = Point>>(points: I) -> Circle
 }
 
 /// Recursive version of [smallest_enclosing_circle] with identical functionality for demonstration purposes only. Use the iterative version.
-/// 
+///
 /// Implementation of Welzl's algorithm. The expected input is an iterator of [f64; 2] coordinate pairs with actual numbers (no NANs or Infinites). Duplicates are allowed. Note that the original algorithm is based on randomizing the order of input points. This is omitted in this crate, however randomization can be done by the caller in advance.
 /// Since the implementation makes recursive calls, for larger problems the call stack will be exceeded. Thus, you should use [smallest_enclosing_circle].
 /// The API behaves the same as well.
-/// 
+///
 /// The implementation is based on the following work:
 /// Welzl, E. (1991). Smallest enclosing disks (balls and ellipsoids).\n
 /// In New results and new trends in computer science (pp. 359-370).
 /// Springer, Berlin, Heidelberg.
 ///
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use smallest_enclosing_circle::smallest_enclosing_circle_recursive;
-/// 
+///
 /// // Input: Four corner points of square box of unit size
 /// let points = Vec::from([[0., 0.], [1., 0.], [1., 1.], [0., 1.]]);
 /// let circle = smallest_enclosing_circle_recursive(points.into_iter());
@@ -331,7 +329,8 @@ mod tests {
 
         #[test]
         fn basic_collinear() {
-            let r = smallest_enclosing_circle(Vec::from([[0., 0.], [1., 0.], [2., 0.]]).into_iter());
+            let r =
+                smallest_enclosing_circle(Vec::from([[0., 0.], [1., 0.], [2., 0.]]).into_iter());
             assert_eq!(r, Circle::Two([2., 0.], [0., 0.]));
             assert_eq!(r.center(), Some([1., 0.]));
             assert_eq!(r.radius(), 1.);
@@ -339,7 +338,8 @@ mod tests {
 
         #[test]
         fn basic_duplicate() {
-            let r = smallest_enclosing_circle(Vec::from([[0., 0.], [1., 0.], [1., 0.]]).into_iter());
+            let r =
+                smallest_enclosing_circle(Vec::from([[0., 0.], [1., 0.], [1., 0.]]).into_iter());
             assert_eq!(r, Circle::Two([1., 0.], [0., 0.]));
             assert_eq!(r.center(), Some([0.5, 0.]));
             assert_eq!(r.radius(), 0.5);
@@ -347,7 +347,8 @@ mod tests {
 
         #[test]
         fn basic_duplicate2() {
-            let r = smallest_enclosing_circle(Vec::from([[1., 0.], [0., 0.], [1., 0.]]).into_iter());
+            let r =
+                smallest_enclosing_circle(Vec::from([[1., 0.], [0., 0.], [1., 0.]]).into_iter());
             assert_eq!(r, Circle::Two([0., 0.], [1., 0.]));
             assert_eq!(r.center(), Some([0.5, 0.]));
             assert_eq!(r.radius(), 0.5);
@@ -395,16 +396,19 @@ mod tests {
 
         #[test]
         fn basic_small() {
-            let r = smallest_enclosing_circle(Vec::from([
-                [0., 0.],
-                [1e-12, 0.],
-                [0.5, 0.],
-                [1., 0.],
-                [1.1, 0.],
-                [1.5, 0.],
-                [2. - 1e-12, 0.],
-                [2., 0.],
-            ]).into_iter());
+            let r = smallest_enclosing_circle(
+                Vec::from([
+                    [0., 0.],
+                    [1e-12, 0.],
+                    [0.5, 0.],
+                    [1., 0.],
+                    [1.1, 0.],
+                    [1.5, 0.],
+                    [2. - 1e-12, 0.],
+                    [2., 0.],
+                ])
+                .into_iter(),
+            );
             assert_eq!(r, Circle::Two([2.0, 0.], [0., 0.]));
             assert_eq!(r.center(), Some([1., 0.]));
             assert_eq!(r.radius(), 1.);
@@ -412,16 +416,19 @@ mod tests {
 
         #[test]
         fn basic_small2() {
-            let r = smallest_enclosing_circle(Vec::from([
-                [1e-12, 0.],
-                [0.5, 0.],
-                [1., 0.],
-                [1.1, 0.],
-                [1.5, 0.],
-                [0., 0.],
-                [2. - 1e-12, 0.],
-                [2., 0.],
-            ]).into_iter());
+            let r = smallest_enclosing_circle(
+                Vec::from([
+                    [1e-12, 0.],
+                    [0.5, 0.],
+                    [1., 0.],
+                    [1.1, 0.],
+                    [1.5, 0.],
+                    [0., 0.],
+                    [2. - 1e-12, 0.],
+                    [2., 0.],
+                ])
+                .into_iter(),
+            );
             assert_eq!(r, Circle::Two([2.0, 0.], [0., 0.]));
             assert_eq!(r.center(), Some([1., 0.]));
             assert_eq!(r.radius(), 1.);
@@ -429,16 +436,19 @@ mod tests {
 
         #[test]
         fn basic_small3() {
-            let r = smallest_enclosing_circle(Vec::from([
-                [0., 0.],
-                [1e-12, 0.],
-                [0.5, 0.],
-                [1., 0.],
-                [1.1, 0.],
-                [1.5, 0.],
-                [2. - 1e-12, 0.],
-                [2., 0.],
-            ]).into_iter());
+            let r = smallest_enclosing_circle(
+                Vec::from([
+                    [0., 0.],
+                    [1e-12, 0.],
+                    [0.5, 0.],
+                    [1., 0.],
+                    [1.1, 0.],
+                    [1.5, 0.],
+                    [2. - 1e-12, 0.],
+                    [2., 0.],
+                ])
+                .into_iter(),
+            );
             assert_eq!(r, Circle::Two([2.0, 0.], [0., 0.]));
             assert_eq!(r.center(), Some([1., 0.]));
             assert_eq!(r.radius(), 1.);
@@ -446,11 +456,72 @@ mod tests {
 
         #[test]
         fn basic_cocircular() {
-            let r =
-                smallest_enclosing_circle(Vec::from([[1., 0.], [0., 1.], [-1., 0.], [0., -1.]]).into_iter());
-            assert_eq!(r, Circle::Three([0., -1.], [-1., 0.], [0., 1.], false));
+            let r = smallest_enclosing_circle(
+                Vec::from([[1., 0.], [0., 1.], [-1., 0.], [0., -1.]]).into_iter(),
+            );
+            assert_eq!(r, Circle::Three([-1., 0.], [0., 1.], [1., 0.], false));
             assert_eq!(r.center(), Some([0., 0.]));
             assert_eq!(r.radius(), 1.);
+        }
+
+        #[test]
+        fn basic_multiple() {
+            let r = smallest_enclosing_circle(
+                Vec::from([
+                    [-1., -1.],
+                    [-1., -1.],
+                    [-1., -1.],
+                    [-1., -1.],
+                    [0., 0.],
+                    [0., 0.],
+                    [0., 0.],
+                    [0., 0.],
+                    [0., 0.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [-1., -1.],
+                ])
+                .into_iter(),
+            );
+            assert_eq!(r, Circle::Two([-1., -1.], [1., 1.]));
+            assert_eq!(r.center(), Some([0., 0.]));
+            assert_eq!(r.radius(), f64::sqrt(2.));
+        }
+
+        #[test]
+        fn basic_multiple2() {
+            let r = smallest_enclosing_circle(
+                Vec::from([
+                    [-1., -1.],
+                    [0., 0.],
+                    [1., 1.],
+                    [-1., -1.],
+                    [0., 0.],
+                    [1., 1.],
+                    [-1., -1.],
+                    [0., 0.],
+                    [1., 1.],
+                    [-1., -1.],
+                    [0., 0.],
+                    [1., 1.],
+                ])
+                .into_iter(),
+            );
+            assert_eq!(r, Circle::Two([-1., -1.], [1., 1.]));
+            assert_eq!(r.center(), Some([0., 0.]));
+            assert_eq!(r.radius(), f64::sqrt(2.));
+        }
+
+        #[test]
+        fn basic_triangle() {
+            let r = smallest_enclosing_circle(
+                Vec::from([[0., 0.], [1., 0.], [1., 1.], [1., 1.]]).into_iter(),
+            );
+            assert_eq!(r, Circle::Three([1., 1.], [1., 0.], [0., 0.], false));
+            assert_eq!(r.center(), Some([0.5, 0.5]));
+            assert_eq!(r.radius(), f64::sqrt(2.) / 2.);
         }
     }
 
@@ -459,7 +530,9 @@ mod tests {
 
         #[test]
         fn basic_collinear() {
-            let r = smallest_enclosing_circle_recursive(Vec::from([[0., 0.], [1., 0.], [2., 0.]]).into_iter());
+            let r = smallest_enclosing_circle_recursive(
+                Vec::from([[0., 0.], [1., 0.], [2., 0.]]).into_iter(),
+            );
             assert_eq!(r, Circle::Two([2., 0.], [0., 0.]));
             assert_eq!(r.center(), Some([1., 0.]));
             assert_eq!(r.radius(), 1.);
@@ -467,7 +540,9 @@ mod tests {
 
         #[test]
         fn basic_duplicate() {
-            let r = smallest_enclosing_circle_recursive(Vec::from([[0., 0.], [1., 0.], [1., 0.]]).into_iter());
+            let r = smallest_enclosing_circle_recursive(
+                Vec::from([[0., 0.], [1., 0.], [1., 0.]]).into_iter(),
+            );
             assert_eq!(r, Circle::Two([1., 0.], [0., 0.]));
             assert_eq!(r.center(), Some([0.5, 0.]));
             assert_eq!(r.radius(), 0.5);
@@ -475,7 +550,9 @@ mod tests {
 
         #[test]
         fn basic_duplicate2() {
-            let r = smallest_enclosing_circle_recursive(Vec::from([[1., 0.], [0., 0.], [1., 0.]]).into_iter());
+            let r = smallest_enclosing_circle_recursive(
+                Vec::from([[1., 0.], [0., 0.], [1., 0.]]).into_iter(),
+            );
             assert_eq!(r, Circle::Two([0., 0.], [1., 0.]));
             assert_eq!(r.center(), Some([0.5, 0.]));
             assert_eq!(r.radius(), 0.5);
@@ -499,7 +576,8 @@ mod tests {
 
         #[test]
         fn basic_double() {
-            let r = smallest_enclosing_circle_recursive(Vec::from([[0., 0.], [1., 0.]]).into_iter());
+            let r =
+                smallest_enclosing_circle_recursive(Vec::from([[0., 0.], [1., 0.]]).into_iter());
             assert_eq!(r, Circle::Two([1.0, 0.], [0., 0.]));
             assert_eq!(r.center(), Some([0.5, 0.]));
             assert_eq!(r.radius(), 0.5);
@@ -507,7 +585,8 @@ mod tests {
 
         #[test]
         fn basic_double_duplicate() {
-            let r = smallest_enclosing_circle_recursive(Vec::from([[1., 0.], [1., 0.]]).into_iter());
+            let r =
+                smallest_enclosing_circle_recursive(Vec::from([[1., 0.], [1., 0.]]).into_iter());
             assert_eq!(r, Circle::One([1.0, 0.]));
             assert_eq!(r.center(), Some([1., 0.]));
             assert_eq!(r.radius(), 0.);
@@ -515,7 +594,8 @@ mod tests {
 
         #[test]
         fn basic_opposite_zero() {
-            let r = smallest_enclosing_circle_recursive(Vec::from([[-1., 0.], [1., 0.]]).into_iter());
+            let r =
+                smallest_enclosing_circle_recursive(Vec::from([[-1., 0.], [1., 0.]]).into_iter());
             assert_eq!(r, Circle::Two([1.0, 0.], [-1., 0.]));
             assert_eq!(r.center(), Some([0., 0.]));
             assert_eq!(r.radius(), 1.);
@@ -523,16 +603,19 @@ mod tests {
 
         #[test]
         fn basic_small() {
-            let r = smallest_enclosing_circle_recursive(Vec::from([
-                [0., 0.],
-                [1e-12, 0.],
-                [0.5, 0.],
-                [1., 0.],
-                [1.1, 0.],
-                [1.5, 0.],
-                [2. - 1e-12, 0.],
-                [2., 0.],
-            ]).into_iter());
+            let r = smallest_enclosing_circle_recursive(
+                Vec::from([
+                    [0., 0.],
+                    [1e-12, 0.],
+                    [0.5, 0.],
+                    [1., 0.],
+                    [1.1, 0.],
+                    [1.5, 0.],
+                    [2. - 1e-12, 0.],
+                    [2., 0.],
+                ])
+                .into_iter(),
+            );
             assert_eq!(r, Circle::Two([2.0, 0.], [0., 0.]));
             assert_eq!(r.center(), Some([1., 0.]));
             assert_eq!(r.radius(), 1.);
@@ -540,16 +623,19 @@ mod tests {
 
         #[test]
         fn basic_small2() {
-            let r = smallest_enclosing_circle_recursive(Vec::from([
-                [1e-12, 0.],
-                [0.5, 0.],
-                [1., 0.],
-                [1.1, 0.],
-                [1.5, 0.],
-                [0., 0.],
-                [2. - 1e-12, 0.],
-                [2., 0.],
-            ]).into_iter());
+            let r = smallest_enclosing_circle_recursive(
+                Vec::from([
+                    [1e-12, 0.],
+                    [0.5, 0.],
+                    [1., 0.],
+                    [1.1, 0.],
+                    [1.5, 0.],
+                    [0., 0.],
+                    [2. - 1e-12, 0.],
+                    [2., 0.],
+                ])
+                .into_iter(),
+            );
             assert_eq!(r, Circle::Two([2.0, 0.], [0., 0.]));
             assert_eq!(r.center(), Some([1., 0.]));
             assert_eq!(r.radius(), 1.);
@@ -557,16 +643,19 @@ mod tests {
 
         #[test]
         fn basic_small3() {
-            let r = smallest_enclosing_circle_recursive(Vec::from([
-                [0., 0.],
-                [1e-12, 0.],
-                [0.5, 0.],
-                [1., 0.],
-                [1.1, 0.],
-                [1.5, 0.],
-                [2. - 1e-12, 0.],
-                [2., 0.],
-            ]).into_iter());
+            let r = smallest_enclosing_circle_recursive(
+                Vec::from([
+                    [0., 0.],
+                    [1e-12, 0.],
+                    [0.5, 0.],
+                    [1., 0.],
+                    [1.1, 0.],
+                    [1.5, 0.],
+                    [2. - 1e-12, 0.],
+                    [2., 0.],
+                ])
+                .into_iter(),
+            );
             assert_eq!(r, Circle::Two([2.0, 0.], [0., 0.]));
             assert_eq!(r.center(), Some([1., 0.]));
             assert_eq!(r.radius(), 1.);
@@ -574,11 +663,72 @@ mod tests {
 
         #[test]
         fn basic_cocircular() {
-            let r =
-                smallest_enclosing_circle_recursive(Vec::from([[1., 0.], [0., 1.], [-1., 0.], [0., -1.]]).into_iter());
-            assert_eq!(r, Circle::Three([0., -1.], [-1., 0.], [0., 1.], false));
+            let r = smallest_enclosing_circle_recursive(
+                Vec::from([[1., 0.], [0., 1.], [-1., 0.], [0., -1.]]).into_iter(),
+            );
+            assert_eq!(r, Circle::Three([-1., 0.], [0., 1.], [1., 0.], false));
             assert_eq!(r.center(), Some([0., 0.]));
             assert_eq!(r.radius(), 1.);
+        }
+
+        #[test]
+        fn basic_multiple() {
+            let r = smallest_enclosing_circle_recursive(
+                Vec::from([
+                    [-1., -1.],
+                    [-1., -1.],
+                    [-1., -1.],
+                    [-1., -1.],
+                    [0., 0.],
+                    [0., 0.],
+                    [0., 0.],
+                    [0., 0.],
+                    [0., 0.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [1., 1.],
+                    [-1., -1.],
+                ])
+                .into_iter(),
+            );
+            assert_eq!(r, Circle::Two([-1., -1.], [1., 1.]));
+            assert_eq!(r.center(), Some([0., 0.]));
+            assert_eq!(r.radius(), f64::sqrt(2.));
+        }
+
+        #[test]
+        fn basic_multiple2() {
+            let r = smallest_enclosing_circle_recursive(
+                Vec::from([
+                    [-1., -1.],
+                    [0., 0.],
+                    [1., 1.],
+                    [-1., -1.],
+                    [0., 0.],
+                    [1., 1.],
+                    [-1., -1.],
+                    [0., 0.],
+                    [1., 1.],
+                    [-1., -1.],
+                    [0., 0.],
+                    [1., 1.],
+                ])
+                .into_iter(),
+            );
+            assert_eq!(r, Circle::Two([-1., -1.], [1., 1.]));
+            assert_eq!(r.center(), Some([0., 0.]));
+            assert_eq!(r.radius(), f64::sqrt(2.));
+        }
+
+        #[test]
+        fn basic_triangle() {
+            let r = smallest_enclosing_circle_recursive(
+                Vec::from([[0., 0.], [1., 0.], [1., 1.], [1., 1.]]).into_iter(),
+            );
+            assert_eq!(r, Circle::Three([1., 1.], [1., 0.], [0., 0.], false));
+            assert_eq!(r.center(), Some([0.5, 0.5]));
+            assert_eq!(r.radius(), f64::sqrt(2.) / 2.);
         }
     }
 }
