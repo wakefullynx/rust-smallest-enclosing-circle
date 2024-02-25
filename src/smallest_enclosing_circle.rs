@@ -571,5 +571,14 @@ mod tests {
             assert_eq!(r.center(), Some([1., 0.]));
             assert_eq!(r.radius(), 1.);
         }
+
+        #[test]
+        fn basic_cocircular() {
+            let r =
+                smallest_enclosing_circle_recursive(Vec::from([[1., 0.], [0., 1.], [-1., 0.], [0., -1.]]).into_iter());
+            assert_eq!(r, Circle::Three([0., -1.], [-1., 0.], [0., 1.], false));
+            assert_eq!(r.center(), Some([0., 0.]));
+            assert_eq!(r.radius(), 1.);
+        }
     }
 }
