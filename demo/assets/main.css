@@ -1,5 +1,6 @@
 body {
     background-color: #111216;
+    margin: 0;
 }
 
 #main {
@@ -46,11 +47,11 @@ body {
 }
 
 .spanningPoint {
-    stroke: #f0a;
+    stroke: #c0c;
 }
 
 .smallestCircle {
-    stroke: #f0a;
-    stroke-width: 2%;
+    stroke: #c0c;
+    stroke-width: 0.5%;
     fill: none;
 }

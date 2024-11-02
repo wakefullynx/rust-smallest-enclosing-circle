@@ -1,32 +1,30 @@
 #![allow(non_snake_case)]
 
 use dioxus::prelude::*;
-use dioxus_logger::tracing::{info, Level};
 
 fn main() {
-    // Init logger
-    dioxus_logger::init(Level::INFO).expect("failed to init logger");
-    info!("starting app");
     launch(App);
 }
 
 type Point = [f64; 2];
 
+const INITIAL_POINTS: [Point; 5] = [[200., 200.], [500., 600.], [200., 500.], [400., 400.], [600., 300.]];
+
 #[component]
 fn App() -> Element {
-    let mut points = use_signal(Vec::<Point>::new);
+    let mut points = use_signal(|| Vec::from(INITIAL_POINTS));
 
     let smallest_circle =
-        smallest_enclosing_circle::smallest_enclosing_circle((points.clone())().into_iter());
+        smallest_enclosing_circle::smallest_enclosing_circle((points)().into_iter());
     let center = smallest_circle.center();
     let radius = smallest_circle.radius();
 
     rsx! {
+        title { "Test" }
         link { rel: "stylesheet", href: "main.css" }
         svg {
-            width: "600",
-            height: "600",
-            "style": "background-color: #fff",
+            width: "100%",
+            height: "100vh",
             onclick: move |event| {
                 let point = event.data.element_coordinates();
                 points.push([point.x, point.y]);
@@ -43,7 +41,7 @@ fn App() -> Element {
                 circle {
                     cx: point[0],
                     cy: point[1],
-                    r: "2%",
+                    r: "1%",
                     class: format!("plainPoint {}", if smallest_circle.is_spanned_by(&point) { "spanningPoint" } else { "" }),
                     onclick: move |event| {
                         event.stop_propagation();
