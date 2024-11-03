@@ -16,7 +16,9 @@ asset_dir = "assets"
 [web.app]
 
 # HTML title tag content
-title = "demo"
+title = "Smallest enclosing circle demo"
+
+#base_path = "smallest-enclosing-circle-demo"
 
 [web.watcher]
 

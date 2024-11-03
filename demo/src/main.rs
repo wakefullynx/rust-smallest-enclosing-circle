@@ -1,6 +1,8 @@
 #![allow(non_snake_case)]
 
 use dioxus::prelude::*;
+use dioxus_free_icons::icons::bs_icons::{BsBoxes, BsGithub};
+use dioxus_free_icons::Icon;
 
 fn main() {
     launch(App);
@@ -8,7 +10,13 @@ fn main() {
 
 type Point = [f64; 2];
 
-const INITIAL_POINTS: [Point; 5] = [[200., 200.], [500., 600.], [200., 500.], [400., 400.], [600., 300.]];
+const INITIAL_POINTS: [Point; 5] = [
+    [400., 200.],
+    [700., 600.],
+    [400., 500.],
+    [600., 400.],
+    [800., 300.],
+];
 
 #[component]
 fn App() -> Element {
@@ -20,35 +28,66 @@ fn App() -> Element {
     let radius = smallest_circle.radius();
 
     rsx! {
-        title { "Test" }
         link { rel: "stylesheet", href: "main.css" }
-        svg {
-            width: "100%",
-            height: "100vh",
-            onclick: move |event| {
-                let point = event.data.element_coordinates();
-                points.push([point.x, point.y]);
-            },
-            if center.is_some() {
-                circle {
-                    cx: center.unwrap()[0],
-                    cy: center.unwrap()[1],
-                    r: radius,
-                    class: "smallestCircle"
+        header {
+            h1 {
+                "Smallest Enclosing Circle Demo"
+            }
+            p {
+                a {
+                    href: "https://github.com/wakefullynx/rust-smallest-enclosing-circle",
+                    Icon {
+                        class: "icon",
+                        icon: BsGithub,
+                    }
+                    " GitHub"
+                }
+                a {
+                    href: "https://crates.io/crates/smallest-enclosing-circle",
+                    Icon {
+                        class: "icon",
+                        icon: BsBoxes,
+                    }
+                    " Crates.io"
                 }
             }
-            {points.iter().enumerate().map(|(i, point)| rsx!{
-                circle {
-                    cx: point[0],
-                    cy: point[1],
-                    r: "1%",
-                    class: format!("plainPoint {}", if smallest_circle.is_spanned_by(&point) { "spanningPoint" } else { "" }),
-                    onclick: move |event| {
-                        event.stop_propagation();
-                        points.remove(i);
+        }
+        div { class: "svg_parent",
+            div {
+                class: "overlay",
+                p {
+                    "Click anywhere to create points."
+                }
+            }
+            svg {
+                onclick: move |event| {
+                let point = event.data.element_coordinates();
+                    points.push([point.x, point.y]);
+                },
+                if center.is_some() {
+                    circle {
+                        cx: center.unwrap()[0],
+                        cy: center.unwrap()[1],
+                        r: radius,
+                        class: "smallest_circle"
                     }
                 }
-            })}
+                g {
+                    {points.iter().enumerate().map(|(i, point)| rsx!{
+                        circle {
+                            key: "{i}",
+                            cx: point[0],
+                            cy: point[1],
+                            r: "1%",
+                            class: format!("plain_point {}", if smallest_circle.is_spanned_by(&point) { "spanning_point" } else { "" }),
+                            onclick: move |event| {
+                                event.stop_propagation();
+                                points.remove(i);
+                            }
+                        }
+                    })}
+                }
+            }
         }
     }
 }
