@@ -97,6 +97,15 @@ impl Circle {
             }
         }
     }
+
+    pub fn is_spanned_by(&self, point: &Point) -> bool {
+        match self {
+            Circle::None => false,
+            Circle::One(p) => p == point,
+            Circle::Two(a, b) => point == a || point == b,
+            Circle::Three(a, b, c, _) => incircle(*a, *b, *c, *point) == 0.,
+        }
+    }
 }
 
 macro_rules! is_inside_circle {
