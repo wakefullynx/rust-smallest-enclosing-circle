@@ -7,5 +7,7 @@ repository = "https://github.com/wakefullynx/rust-smallest-enclosing-circle"
 version = "0.2.0"
 edition = "2021"
 
+exclude = ["/img"]
+
 [dependencies]
 geometry-predicates = "0.3.0"

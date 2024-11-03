@@ -2,6 +2,8 @@
 
 Iterative and recursive two-dimensional implementations of Welzl's algorithm for computing the smallest enclosing circle.
 
+![Example of Smallest Enclosing Circle](https://github.com/wakefullynx/rust-smallest-enclosing-circle/blob/main/img/example.png?raw=true)
+
 **Live Demo:** [wakefullynx.dev/smallest-enclosing-circle-demo/](https://wakefullynx.dev/smallest-enclosing-circle-demo/)
 
 **Crate:** [crates.io](https://crates.io/crates/smallest-enclosing-circle)
