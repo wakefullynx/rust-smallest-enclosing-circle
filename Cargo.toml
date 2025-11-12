@@ -11,3 +11,4 @@ exclude = ["/img"]
 
 [dependencies]
 geometry-predicates = "0.3.0"
+num = "0.4.3"
