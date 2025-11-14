@@ -1,9 +1,8 @@
 use num::traits::real::Real;
 
 use crate::{
-    num::ConstTwo,
-    orient2d::{DefaultOrient2DArea, Orient2DArea},
-    point::PointLike,
+    geometry::{num::ConstTwo, point::PointLike},
+    predicates::orientation::{DefaultOrientationArea, OrientationArea},
 };
 
 pub trait CircumCircle<CenterPoint, Radius> {
@@ -16,7 +15,7 @@ where
 {
     fn circumcircle(&self) -> Option<([f64; 2], f64)> {
         let &[a, b, c] = &self.each_ref().map(|p| p.coordinates());
-        Some(circumcircle2d::<f64, DefaultOrient2DArea>(a, b, c))
+        Some(circumcircle2d::<f64, DefaultOrientationArea>(a, b, c))
     }
 }
 
@@ -32,12 +31,15 @@ where
     }
 }
 
+/// # Panics
+/// 
+/// This function panics if the given three points are collinear.
 pub fn circumcircle2d<C, O>(a: [C; 2], b: [C; 2], c: [C; 2]) -> ([C; 2], C)
 where
     C: Real + ConstTwo,
-    O: Orient2DArea<C, [C; 2]>
+    O: OrientationArea<C>,
 {
-    let orientation = O::orient2d(a, b, c);
+    let orientation = O::orientation(&a, &b, &c);
 
     let (b, c, denominator) = if orientation > C::zero() {
         (b, c, C::TWO * orientation)
@@ -70,4 +72,26 @@ where
     ];
     let radius = (bcxys * acxys * abxys).sqrt() / denominator;
     (center, radius)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod circumcircle {
+        use super::*;
+
+        #[test]
+        fn box_triangle_lower_right() {
+            assert_eq!(
+                circumcircle2d::<f64, DefaultOrientationArea>(
+                    [-1.0, -1.0],
+                    [1.0, -1.0],
+                    [1.0, 1.0]
+                ),
+                ([0., 0.], f64::sqrt(2.))
+            )
+        }
+    }
+
 }

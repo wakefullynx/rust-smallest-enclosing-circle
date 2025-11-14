@@ -7,3 +7,9 @@ impl<C, const N: usize> PointLike<C, N> for [C; N] where C: Copy {
         *self
     }
 }
+
+impl<C, const N: usize> PointLike<C, N> for &[C; N] where C: Copy {
+    fn coordinates(&self) -> [C; N] {
+        **self
+    }
+}

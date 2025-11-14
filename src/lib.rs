@@ -12,6 +12,8 @@
 //! Welzl, E. (1991). Smallest enclosing disks (balls and ellipsoids).
 //! In New results and new trends in computer science (pp. 359-370).
 //! Springer, Berlin, Heidelberg.
+//! 
+//! # A Note on Custom Predicates
 //!
 //! # Examples
 //!
@@ -29,14 +31,12 @@
 //! // Radius: 0.7071067811865476
 //! ```
 
-mod smallest_enclosing_circle;
+pub mod smallest_enclosing_circle;
 pub mod circle;
-mod circumcircle;
-mod incircle;
-mod num;
-mod orient2d;
-mod point;
+pub mod geometry;
+pub mod predicates;
 
-//pub use self::smallest_enclosing_circle::smallest_enclosing_circle;
+pub use self::smallest_enclosing_circle::{smallest_enclosing_circle, smallest_enclosing_circle_with_predicate};
+pub use self::circle::{Circle2D};
 //pub use self::smallest_enclosing_circle::smallest_enclosing_circle_recursive;
 //pub use self::smallest_enclosing_circle::Circle2D;
