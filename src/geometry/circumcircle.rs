@@ -5,6 +5,7 @@ use crate::{
     predicates::orientation::{DefaultOrientationArea, OrientationArea},
 };
 
+/// Trait that allows for the computation of the circumcircle (center and radius) of objects.
 pub trait CircumCircle<CenterPoint, Radius> {
     fn circumcircle(&self) -> Option<(CenterPoint, Radius)>;
 }
@@ -31,6 +32,8 @@ where
     }
 }
 
+/// Computed the center and radius of the circle given by the three points `a`, `b`, and `c`. Or, in other words, the circumcircle of the triangle `abc`.
+/// 
 /// # Panics
 /// 
 /// This function panics if the given three points are collinear.

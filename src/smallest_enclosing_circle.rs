@@ -338,4 +338,5 @@ mod tests {
     }
 
     test_function!(smallest_enclosing_circle);
+    test_function!(smallest_enclosing_circle_recursive);
 }

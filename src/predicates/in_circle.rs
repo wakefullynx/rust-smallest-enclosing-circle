@@ -24,7 +24,7 @@ pub trait InCircle<T> {
 pub struct DefaultInCircle;
 
 impl InCircle<f64> for DefaultInCircle {
-    /// Default implementation of the [`Orientation`] trait, uses the [`geometry_predicates`] crate.
+    /// Default implementation of the [`InCircle`] trait, uses the [`geometry_predicates`] crate.
     fn in_circle(
         a: &impl PointLike<f64, 2>,
         b: &impl PointLike<f64, 2>,

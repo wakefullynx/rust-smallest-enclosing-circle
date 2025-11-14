@@ -38,5 +38,3 @@ pub mod predicates;
 
 pub use self::smallest_enclosing_circle::{smallest_enclosing_circle, smallest_enclosing_circle_with_predicate};
 pub use self::circle::{Circle2D};
-//pub use self::smallest_enclosing_circle::smallest_enclosing_circle_recursive;
-//pub use self::smallest_enclosing_circle::Circle2D;
