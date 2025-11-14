@@ -31,10 +31,10 @@
 //! // Radius: 0.7071067811865476
 //! ```
 
-pub mod smallest_enclosing_circle;
+pub mod algorithm;
 pub mod circle;
 pub mod geometry;
 pub mod predicates;
 
-pub use self::smallest_enclosing_circle::{smallest_enclosing_circle, smallest_enclosing_circle_with_predicate};
+pub use self::algorithm::{smallest_enclosing_circle, smallest_enclosing_circle_with_predicate};
 pub use self::circle::{Circle2D};

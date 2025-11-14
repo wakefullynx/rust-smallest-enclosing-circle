@@ -12,32 +12,12 @@ enum State<Point> {
     S4,
 }
 
-/// Takes an iterator over two-dimensional points and returns the smallest [Circle] that encloses all points.
-///
-/// Iterative version of Welzl's algorithm, which originally is [recursive](smallest_enclosing_circle_recursive).
-/// The expected input is an iterator of [f64; 2] coordinate pairs with actual numbers (no NANs or Infinites). Duplicates are allowed.
-/// Note that the original algorithm is based on randomizing the order of input points.
-/// This is omitted in this crate, however randomization can be done by the caller in advance.
-/// The advantage over the recursive algorithm is that large problems sizes do not run into call stack problems.
-/// The result is a [Circle] struct, i.e., either one of four options:
-/// - None (i.e., empty input vector)
-/// - Smallest circle is spanned by one point and zero radius (iff input vector has length 1)
-/// - Smallest circle is spanned by two points, with the center halfway between them and radius half their distance
-/// - Smallest circle is spanned by three points, with the center halfway between them and radius half their distance
-///
-/// In cases where more than three points lie on the smallest circle, the choice of spanning points is arbitrary. In the same way, the order of spanning points is arbitrary for all [Circle] instances.
-///
-/// The implementation is based on the following work:
-///
-/// Welzl, E. (1991). Smallest enclosing disks (balls and ellipsoids).
-/// In New results and new trends in computer science (pp. 359-370).
-/// Springer, Berlin, Heidelberg.
-///
+/// See [`smallest_enclosing_circle`]. Additionally, supports a custom [`InCircle`] predicate.
 ///
 /// # Examples
 ///
 /// ```
-/// use smallest_enclosing_circle::{smallest_enclosing_circle_with_predicate};
+/// use smallest_enclosing_circle::smallest_enclosing_circle_with_predicate;
 /// use smallest_enclosing_circle::predicates::in_circle::DefaultInCircle;
 ///
 /// // Input: Four corner points of square box of unit size
@@ -91,21 +71,18 @@ where
     circle
 }
 
-pub fn smallest_enclosing_circle<Point>(points: impl IntoIterator<Item = Point>) -> Circle2D<Point>
-where
-    Point: PartialEq + PointLike<f64, 2> + Copy,
-{
-    smallest_enclosing_circle_with_predicate::<Point, DefaultInCircle>(points)
-}
-
-/// Recursive version of [smallest_enclosing_circle] with identical functionality for demonstration purposes only. Use the iterative version.
+/// Takes an iterator over two-dimensional points and returns the smallest [Circle] that encloses all points.
 ///
-/// Implementation of Welzl's algorithm. The expected input is an iterator of [f64; 2] coordinate pairs with actual numbers (no NANs or Infinites). Duplicates are allowed. Note that the original algorithm is based on randomizing the order of input points. This is omitted in this crate, however randomization can be done by the caller in advance.
-/// Since the implementation makes recursive calls, for larger problems the call stack will be exceeded. Thus, you should use [smallest_enclosing_circle].
-/// The API behaves the same as well.
+/// Iterative version of Welzl's algorithm, which was originally formulated as recursive algorithm.
+/// The expected input is an of [f64; 2] coordinate pairs with actual numbers (no NaNs or Infinites). Duplicates are allowed.
+/// Note that the original algorithm is based on randomizing the order of input points.
+/// This is omitted in this crate, however randomization can be done by the caller in advance.
+/// The advantage over the recursive algorithm is that large problem sizes do not run into call stack problems.
+/// The result is a [`Circle2D`] enum.
 ///
 /// The implementation is based on the following work:
-/// Welzl, E. (1991). Smallest enclosing disks (balls and ellipsoids).\n
+///
+/// Welzl, E. (1991). Smallest enclosing disks (balls and ellipsoids).
 /// In New results and new trends in computer science (pp. 359-370).
 /// Springer, Berlin, Heidelberg.
 ///
@@ -113,17 +90,33 @@ where
 /// # Examples
 ///
 /// ```
-/// use smallest_enclosing_circle::smallest_enclosing_circle_recursive;
+/// use smallest_enclosing_circle::smallest_enclosing_circle;
+/// use smallest_enclosing_circle::predicates::in_circle::DefaultInCircle;
 ///
-/// // Input: Four corner points of a square box of unit size
-/// let points = Vec::from([[0., 0.], [1., 0.], [1., 1.], [0., 1.]]);
-/// let circle = smallest_enclosing_circle_recursive([[0., 0.], [1., 0.], [1., 1.], [0., 1.]]);
-/// println!("Circle: {:?}", circle);
-/// // Circle: Three([0.0, 1.0], [1.0, 1.0], [1.0, 0.0], false);
-/// println!("Center: {:?}", circle.center());
-/// // Center: Some([0.5, 0.5])
-/// println!("Radius: {:?}", circle.radius());
-/// // Radius: 0.7071067811865476
+/// // Input: Four corner points of square box of unit size
+/// let circle = smallest_enclosing_circle([[0., 0.], [1., 0.], [1., 1.], [0., 1.]]);
+/// assert_eq!(circle.center(), Some([0.5, 0.5]));
+/// assert_eq!(circle.radius(), Some(f64::sqrt(2.) / 2.));
+/// ```
+pub fn smallest_enclosing_circle<Point>(points: impl IntoIterator<Item = Point>) -> Circle2D<Point>
+where
+    Point: PartialEq + PointLike<f64, 2> + Copy,
+{
+    smallest_enclosing_circle_with_predicate::<Point, DefaultInCircle>(points)
+}
+
+/// See [`smallest_enclosing_circle_with_predicate`]. This is the recursive version, implemented for educational purposes only. You should prefer [`smallest_enclosing_circle_with_predicate`].
+///
+/// # Examples
+///
+/// ```
+/// use smallest_enclosing_circle::algorithm::smallest_enclosing_circle_recursive_with_predicate;
+/// use smallest_enclosing_circle::predicates::in_circle::DefaultInCircle;
+///
+/// // Input: Four corner points of square box of unit size
+/// let circle = smallest_enclosing_circle_recursive_with_predicate::<_, DefaultInCircle>([[0., 0.], [1., 0.], [1., 1.], [0., 1.]]);
+/// assert_eq!(circle.center(), Some([0.5, 0.5]));
+/// assert_eq!(circle.radius(), Some(f64::sqrt(2.) / 2.));
 /// ```
 pub fn smallest_enclosing_circle_recursive_with_predicate<Point, InCirclePredicate>(
     points: impl IntoIterator<Item = Point>,
@@ -155,6 +148,19 @@ where
     recursion::<Point, InCirclePredicate>(&points.into_iter().collect(), &Vec::new())
 }
 
+/// See [`smallest_enclosing_circle`]. This is the recursive version, implemented for educational purposes only. You should prefer [`smallest_enclosing_circle`].
+///
+/// # Examples
+///
+/// ```
+/// use smallest_enclosing_circle::algorithm::smallest_enclosing_circle_recursive;
+/// use smallest_enclosing_circle::predicates::in_circle::DefaultInCircle;
+///
+/// // Input: Four corner points of square box of unit size
+/// let circle = smallest_enclosing_circle_recursive([[0., 0.], [1., 0.], [1., 1.], [0., 1.]]);
+/// assert_eq!(circle.center(), Some([0.5, 0.5]));
+/// assert_eq!(circle.radius(), Some(f64::sqrt(2.) / 2.));
+/// ```
 pub fn smallest_enclosing_circle_recursive<Point>(
     points: impl IntoIterator<Item = Point>,
 ) -> Circle2D<Point>
@@ -326,7 +332,7 @@ mod tests {
                         [[1., 1.], [-1., -1.]]
                     );
 
-                     test_case!(
+                    test_case!(
                         triangle,
                         $function,
                         [[0., 0.], [1., 0.], [1., 1.], [1., 1.]],
