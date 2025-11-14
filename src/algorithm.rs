@@ -71,7 +71,7 @@ where
     circle
 }
 
-/// Takes an iterator over two-dimensional points and returns the smallest [Circle] that encloses all points.
+/// Takes an iterator over two-dimensional points and returns the smallest circle that encloses all points.
 ///
 /// Iterative version of Welzl's algorithm, which was originally formulated as recursive algorithm.
 /// The expected input is an of [f64; 2] coordinate pairs with actual numbers (no NaNs or Infinites). Duplicates are allowed.
@@ -79,6 +79,8 @@ where
 /// This is omitted in this crate, however randomization can be done by the caller in advance.
 /// The advantage over the recursive algorithm is that large problem sizes do not run into call stack problems.
 /// The result is a [`Circle2D`] enum.
+/// 
+/// Welzl's algorithm solves this problem in expected `O(n)` runtime. Please note that this only holds for randomized inputs (i.e., you may want to shuffle your input stream in advance).
 ///
 /// The implementation is based on the following work:
 ///
