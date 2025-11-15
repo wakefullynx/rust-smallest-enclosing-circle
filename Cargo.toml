@@ -11,3 +11,8 @@ exclude = ["/img"]
 
 [dependencies]
 geometry-predicates = "0.3.0"
+num = "0.4.3"
+
+[dev-dependencies]
+paste = "1.0.15"
+itertools = "0.14.0"
