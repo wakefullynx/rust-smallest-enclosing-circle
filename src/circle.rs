@@ -22,13 +22,13 @@ use crate::{
 /// use smallest_enclosing_circle::{Circle2D};
 ///
 /// let circle = Circle2D::new(&[[0., 0.], [1., 0.]]);
-/// 
+///
 /// assert_eq!(circle.center(), Some([0.5, 0.0]));
 /// assert_eq!(circle.radius(), Some(0.5));
-/// 
+///
 /// assert_eq!(circle.contains(&[0.5, 0.]), true);
 /// assert_eq!(circle.contains(&[1.0, 0.]), true);
-/// 
+///
 /// assert_eq!(circle.is_on_circle(&[0.5, 0.]), false);
 /// assert_eq!(circle.is_on_circle(&[1.0, 0.]), true);
 /// ```
@@ -55,7 +55,7 @@ where
     P: PartialEq + PointLike<f64, 2> + Copy,
 {
     /// Creates a new [`Circle2D`] spanned by 0 to 3 points.
-    /// 
+    ///
     /// # Panics
     ///
     /// Panics if more than 3 points are supplied.
@@ -64,7 +64,7 @@ where
     }
 
     /// Creates a new [`Circle2D`] spanned by 0 to 3 points. If 3 points are supplied, uses a custom [`Orientation`] predicate to determine whether they are in clockwise or counterclockwise order.
-    /// 
+    ///
     /// # Panics
     ///
     /// Panics if more than 3 points are supplied.
@@ -142,7 +142,6 @@ where
     }
 }
 
-
 impl<P> Circle2D<P>
 where
     P: PointLike<f64, 2>,
@@ -202,7 +201,8 @@ where
         &self,
         other: &Circle2D<impl PointLike<f64, 2>>,
     ) -> bool {
-        self.one_sided_equals_with_predicate::<IC>(other) && other.one_sided_equals_with_predicate::<IC>(self)
+        self.one_sided_equals_with_predicate::<IC>(other)
+            && other.one_sided_equals_with_predicate::<IC>(self)
     }
 
     fn one_sided_equals_with_predicate<IC: InCircle<f64>>(
@@ -212,7 +212,7 @@ where
         match self {
             Circle2D::None => match other {
                 Circle2D::None => true,
-                _ => false
+                _ => false,
             },
             Circle2D::One { p: p1 } => match other {
                 Circle2D::One { p: p2 } => p1.coordinates() == p2.coordinates(),
@@ -256,7 +256,10 @@ where
     }
 
     /// Checks whether the given point is contained by the circle, i.e., whether it lies on *or* inside the circle. Uses the custom [`InCircle`] predicate to determine locations.
-    pub fn contains_with_predicate<P: PointLike<f64, 2> + PartialEq, IC: InCircle<f64>>(&self, point: &P) -> bool {
+    pub fn contains_with_predicate<P: PointLike<f64, 2> + PartialEq, IC: InCircle<f64>>(
+        &self,
+        point: &P,
+    ) -> bool {
         match self {
             Circle2D::None => false,
             Circle2D::One { p } => p.coordinates() == point.coordinates(),
@@ -272,8 +275,8 @@ where
                 counter_clockwise,
             } => {
                 let i = IC::in_circle(a, b, c, point);
-                (*counter_clockwise && i == InCircleState::Inside)
-                    || (!counter_clockwise && i == InCircleState::Outside)
+                (*counter_clockwise && i != InCircleState::Outside)
+                    || (!counter_clockwise && i != InCircleState::Inside)
             }
         }
     }
@@ -304,6 +307,352 @@ mod tests {
                 )
             }
         }
-    }
 
+        mod radius {
+            use super::*;
+
+            #[test]
+            fn no_point() {
+                assert_eq!(Circle2D::<[f64; 2]>::new(&[]).radius(), None)
+            }
+
+            #[test]
+            fn one_point() {
+                assert_eq!(Circle2D::<[f64; 2]>::new(&[[0., 0.]]).radius(), None)
+            }
+
+            #[test]
+            fn two_points() {
+                assert_eq!(
+                    Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]).radius(),
+                    Some(0.5)
+                )
+            }
+
+            #[test]
+            fn three_points() {
+                assert_eq!(
+                    Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [1.0, 1.0]]).radius(),
+                    Some(f64::sqrt(2.) / 2.)
+                )
+            }
+        }
+
+        mod center {
+            use super::*;
+
+            #[test]
+            fn no_point() {
+                assert_eq!(Circle2D::<[f64; 2]>::new(&[]).center(), None)
+            }
+
+            #[test]
+            fn one_point() {
+                assert_eq!(Circle2D::<[f64; 2]>::new(&[[0., 0.]]).center(), None)
+            }
+
+            #[test]
+            fn two_points() {
+                assert_eq!(
+                    Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]).center(),
+                    Some([0.5, 0.])
+                )
+            }
+
+            #[test]
+            fn three_points() {
+                assert_eq!(
+                    Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [1.0, 1.0]]).center(),
+                    Some([0.5, 0.5])
+                )
+            }
+        }
+
+        mod is_on_circle {
+            use super::*;
+
+            #[test]
+            fn no_point() {
+                assert!(!Circle2D::<[f64; 2]>::new(&[]).is_on_circle(&[1.0, 1.0]))
+            }
+
+            #[test]
+            fn one_point() {
+                assert!(Circle2D::<[f64; 2]>::new(&[[0., 0.]]).is_on_circle(&[0.0, 0.0]))
+            }
+
+            #[test]
+            fn one_point_2() {
+                assert!(!Circle2D::<[f64; 2]>::new(&[[0., 0.]]).is_on_circle(&[1.0, 0.0]))
+            }
+
+            #[test]
+            fn two_points() {
+                assert!(Circle2D::new(&[[0., 0.], [1., 0.]]).is_on_circle(&[0., 0.]),)
+            }
+
+            #[test]
+            fn two_points_2() {
+                assert!(Circle2D::new(&[[0., 0.], [1., 0.]]).is_on_circle(&[1., 0.]),)
+            }
+
+            #[test]
+            fn two_points_3() {
+                assert!(Circle2D::new(&[[0., 0.], [1., 0.]]).is_on_circle(&[0.5, 0.5]),)
+            }
+
+            #[test]
+            fn two_points_4() {
+                assert!(Circle2D::new(&[[0., 0.], [1., 0.]]).is_on_circle(&[0.5, -0.5]),)
+            }
+
+            #[test]
+            fn two_points_5() {
+                assert!(!Circle2D::new(&[[0., 0.], [1., 0.]]).is_on_circle(&[0.5, 0.0]),)
+            }
+
+            #[test]
+            fn two_points_6() {
+                assert!(!Circle2D::new(&[[0., 0.], [1., 0.]]).is_on_circle(&[1.0, 1.0]),)
+            }
+
+            #[test]
+            fn three_points() {
+                assert!(Circle2D::new(&[[0., 0.], [1., 0.], [1., 1.]]).is_on_circle(&[0.0, 0.0]),)
+            }
+
+            #[test]
+            fn three_points_2() {
+                assert!(Circle2D::new(&[[0., 0.], [1., 0.], [1., 1.]]).is_on_circle(&[1.0, 0.0]),)
+            }
+
+            #[test]
+            fn three_points_3() {
+                assert!(Circle2D::new(&[[0., 0.], [1., 0.], [1., 1.]]).is_on_circle(&[1.0, 1.0]),)
+            }
+
+            #[test]
+            fn three_points_4() {
+                assert!(Circle2D::new(&[[0., 0.], [1., 0.], [1., 1.]]).is_on_circle(&[0.0, 1.0]),)
+            }
+
+            #[test]
+            fn three_points_5() {
+                assert!(!Circle2D::new(&[[0., 0.], [1., 0.], [1., 1.]]).is_on_circle(&[0.5, 0.5]),)
+            }
+
+            #[test]
+            fn three_points_6() {
+                assert!(!Circle2D::new(&[[0., 0.], [1., 0.], [1., 1.]]).is_on_circle(&[1.5, 1.5]),)
+            }
+        }
+
+        mod equals {
+            use super::*;
+
+            #[test]
+            fn equals_1() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[]);
+                assert!(c1.equals(&c2));
+                assert!(c2.equals(&c1));
+            }
+
+            #[test]
+            fn equals_2() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[[0., 0.]]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[]);
+                assert!(!c1.equals(&c2));
+                assert!(!c2.equals(&c1));
+            }
+
+            #[test]
+            fn equals_3() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[]);
+                assert!(!c1.equals(&c2));
+                assert!(!c2.equals(&c1));
+            }
+
+            #[test]
+            fn equals_4() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[[0., 0.]]);
+                assert!(!c1.equals(&c2));
+                assert!(!c2.equals(&c1));
+            }
+
+            #[test]
+            fn equals_5() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]);
+                assert!(c1.equals(&c2));
+                assert!(c2.equals(&c1));
+            }
+
+            #[test]
+            fn equals_6() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[[0.5, -0.5], [0.5, 0.5]]);
+                assert!(c1.equals(&c2));
+                assert!(c2.equals(&c1));
+            }
+
+            #[test]
+            fn equals_7() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [0.5, -0.5]]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[]);
+                assert!(!c1.equals(&c2));
+                assert!(!c2.equals(&c1));
+            }
+
+            #[test]
+            fn equals_8() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [0.5, -0.5]]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[[0., 0.]]);
+                assert!(!c1.equals(&c2));
+                assert!(!c2.equals(&c1));
+            }
+
+            #[test]
+            fn equals_9() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [0.5, -0.5]]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [0.5, -0.5]]);
+                assert!(!c1.equals(&c2));
+                assert!(!c2.equals(&c1));
+            }
+
+            #[test]
+            fn equals_10() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [0.5, -0.5]]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]);
+                assert!(c1.equals(&c2));
+                assert!(c2.equals(&c1));
+            }
+
+            #[test]
+            fn equals_11() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [0.5, 0.5]]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]);
+                assert!(c1.equals(&c2));
+                assert!(c2.equals(&c1));
+            }
+
+            #[test]
+            fn equals_12() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [1.0, 1.0]]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [1.0, 1.0]]);
+                assert!(c1.equals(&c2));
+                assert!(c2.equals(&c1));
+            }
+
+            #[test]
+            fn equals_13() {
+                let c1 = Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [1.0, 1.0]]);
+                let c2 = Circle2D::<[f64; 2]>::new(&[[1.0, 0.], [1.0, 1.0], [0., 1.0]]);
+                assert!(c1.equals(&c2));
+                assert!(c2.equals(&c1));
+            }
+        }
+
+        mod contains {
+            use super::*;
+
+            #[test]
+            fn contains_1() {
+                assert!(!Circle2D::<[f64; 2]>::new(&[]).contains(&[0., 0.]));
+            }
+
+            #[test]
+            fn contains_2() {
+                assert!(Circle2D::<[f64; 2]>::new(&[[0., 0.]]).contains(&[0., 0.]));
+            }
+
+            #[test]
+            fn contains_3() {
+                assert!(!Circle2D::<[f64; 2]>::new(&[[0., 0.]]).contains(&[1., 0.]));
+            }
+
+            #[test]
+            fn contains_4() {
+                assert!(Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]).contains(&[0., 0.]));
+            }
+
+            #[test]
+            fn contains_5() {
+                assert!(Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]).contains(&[1., 0.]));
+            }
+
+            #[test]
+            fn contains_6() {
+                assert!(Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]).contains(&[0.5, 0.5]));
+            }
+
+            #[test]
+            fn contains_7() {
+                assert!(!Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]).contains(&[-1.0, 0.]));
+            }
+
+            #[test]
+            fn contains_8() {
+                assert!(!Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.]]).contains(&[2.0, 0.]));
+            }
+
+            #[test]
+            fn contains_9() {
+                assert!(
+                    Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [1.0, 1.0]])
+                        .contains(&[0., 0.])
+                );
+            }
+
+            #[test]
+            fn contains_10() {
+                assert!(
+                    Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [1.0, 1.0]])
+                        .contains(&[1.0, 0.])
+                );
+            }
+
+            #[test]
+            fn contains_11() {
+                assert!(
+                    Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [1.0, 1.0]])
+                        .contains(&[1.0, 1.0])
+                );
+            }
+
+            #[test]
+            fn contains_12() {
+                assert!(
+                    Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [1.0, 1.0]])
+                        .contains(&[0., 1.0])
+                );
+            }
+
+            #[test]
+            fn contains_13() {
+                assert!(
+                    Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [1.0, 1.0]])
+                        .contains(&[0.5, 0.5])
+                );
+            }
+
+            #[test]
+            fn contains_14() {
+                assert!(
+                    !Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [1.0, 1.0]])
+                        .contains(&[1.5, 1.5])
+                );
+            }
+
+            #[test]
+            fn contains_15() {
+                assert!(
+                    !Circle2D::<[f64; 2]>::new(&[[0., 0.], [1.0, 0.], [1.0, 1.0]])
+                        .contains(&[-1.5, -1.5])
+                );
+            }
+        }
+    }
 }
