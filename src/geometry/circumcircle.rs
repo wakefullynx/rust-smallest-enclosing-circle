@@ -33,9 +33,9 @@ where
 }
 
 /// Computed the center and radius of the circle given by the three points `a`, `b`, and `c`. Or, in other words, the circumcircle of the triangle `abc`.
-/// 
+///
 /// # Panics
-/// 
+///
 /// This function panics if the given three points are collinear.
 pub fn circumcircle2d<C, O>(a: [C; 2], b: [C; 2], c: [C; 2]) -> ([C; 2], C)
 where
@@ -81,7 +81,7 @@ where
 mod tests {
     use super::*;
 
-    mod circumcircle {
+    mod circumcircle2d {
         use super::*;
 
         #[test]
@@ -95,6 +95,93 @@ mod tests {
                 ([0., 0.], f64::sqrt(2.))
             )
         }
+
+        #[test]
+        fn box_triangle_upper_left() {
+            assert_eq!(
+                circumcircle2d::<f64, DefaultOrientationArea>(
+                    [-1.0, -1.0],
+                    [-1.0, 1.0],
+                    [1.0, 1.0]
+                ),
+                ([0., 0.], f64::sqrt(2.))
+            )
+        }
+
+        #[test]
+        fn box_triangle_upper_right() {
+            assert_eq!(
+                circumcircle2d::<f64, DefaultOrientationArea>([1.0, -1.0], [-1.0, 1.0], [1.0, 1.0]),
+                ([0., 0.], f64::sqrt(2.))
+            )
+        }
+
+        #[test]
+        fn box_triangle_lower_left() {
+            assert_eq!(
+                circumcircle2d::<f64, DefaultOrientationArea>(
+                    [-1.0, -1.0],
+                    [-1.0, 1.0],
+                    [1.0, -1.0]
+                ),
+                ([0., 0.], f64::sqrt(2.))
+            )
+        }
     }
 
+    mod circumcircle_two_points {
+        use super::*;
+
+        #[test]
+        fn test_1() {
+            assert_eq!(
+                [[0.0, 0.0], [1.0, 0.0]].circumcircle(),
+                Some(([0.5, 0.], 0.5))
+            )
+        }
+
+        #[test]
+        fn test_2() {
+            assert_eq!(
+                [[0.0, 0.0], [0.0, 1.0]].circumcircle(),
+                Some(([0., 0.5], 0.5))
+            )
+        }
+    }
+
+    mod circumcircle_three_points {
+        use super::*;
+
+        #[test]
+        fn test_1() {
+            assert_eq!(
+                [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]].circumcircle(),
+                Some(([0.5, 0.5], f64::sqrt(2.0) / 2.0))
+            )
+        }
+
+        #[test]
+        fn test_2() {
+            assert_eq!(
+                [[0.0, 0.0], [1.0, 1.0], [1.0, 0.0]].circumcircle(),
+                Some(([0.5, 0.5], f64::sqrt(2.0) / 2.0))
+            )
+        }
+
+        #[test]
+        fn test_3() {
+            assert_eq!(
+                [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0]].circumcircle(),
+                Some(([0.5, 0.5], f64::sqrt(2.0) / 2.0))
+            )
+        }
+
+        #[test]
+        fn test_4() {
+            assert_eq!(
+                [[0.0, 0.0], [1.0, 1.0], [0.0, 1.0]].circumcircle(),
+                Some(([0.5, 0.5], f64::sqrt(2.0) / 2.0))
+            )
+        }
+    }
 }
