@@ -1,93 +1,39 @@
-#![allow(non_snake_case)]
-
+// The dioxus prelude contains a ton of common items used in dioxus apps. It's a good idea to import wherever you
+// need dioxus
 use dioxus::prelude::*;
-use dioxus_free_icons::icons::bs_icons::{BsBoxes, BsGithub};
-use dioxus_free_icons::Icon;
+
+use components::SmallestEnclosingCircleDemo;
+
+/// Define a components module that contains all shared components for our app.
+mod components;
+
+// We can import assets in dioxus with the `asset!` macro. This macro takes a path to an asset relative to the crate root.
+// The macro returns an `Asset` type that will display as the path to the asset in the browser or a local path in desktop bundles.
+const FAVICON: Asset = asset!("/assets/favicon.ico");
+// The asset macro also minifies some assets like CSS and JS to make bundled smaller
+const MAIN_CSS: Asset = asset!("/assets/styling/main.css");
 
 fn main() {
-    launch(App);
+    // The `launch` function is the main entry point for a dioxus app. It takes a component and renders it with the platform feature
+    // you have enabled
+    dioxus::launch(App);
 }
 
-type Point = [f64; 2];
-
-const INITIAL_POINTS: [Point; 5] = [
-    [400., 200.],
-    [700., 600.],
-    [400., 500.],
-    [600., 400.],
-    [800., 300.],
-];
-
+/// App is the main component of our app. Components are the building blocks of dioxus apps. Each component is a function
+/// that takes some props and returns an Element. In this case, App takes no props because it is the root of our app.
+///
+/// Components should be annotated with `#[component]` to support props, better error messages, and autocomplete
 #[component]
 fn App() -> Element {
-    let mut points = use_signal(|| Vec::from(INITIAL_POINTS));
-
-    let smallest_circle =
-        smallest_enclosing_circle::smallest_enclosing_circle((points)().into_iter());
-    let center = smallest_circle.center();
-    let radius = smallest_circle.radius();
-
+    // The `rsx!` macro lets us define HTML inside of rust. It expands to an Element with all of our HTML inside.
     rsx! {
-        link { rel: "stylesheet", href: "main.css" }
-        header {
-            h1 {
-                "Smallest Enclosing Circle Demo"
-            }
-            p {
-                a {
-                    href: "https://github.com/wakefullynx/rust-smallest-enclosing-circle",
-                    Icon {
-                        class: "icon",
-                        icon: BsGithub,
-                    }
-                    " GitHub"
-                }
-                a {
-                    href: "https://crates.io/crates/smallest-enclosing-circle",
-                    Icon {
-                        class: "icon",
-                        icon: BsBoxes,
-                    }
-                    " Crates.io"
-                }
-            }
-        }
-        div { class: "svg_parent",
-            div {
-                class: "overlay",
-                p {
-                    "Click anywhere to create points."
-                }
-            }
-            svg {
-                onclick: move |event| {
-                let point = event.data.element_coordinates();
-                    points.push([point.x, point.y]);
-                },
-                if center.is_some() {
-                    circle {
-                        cx: center.unwrap()[0],
-                        cy: center.unwrap()[1],
-                        r: radius,
-                        class: "smallest_circle"
-                    }
-                }
-                g {
-                    {points.iter().enumerate().map(|(i, point)| rsx!{
-                        circle {
-                            key: "{i}",
-                            cx: point[0],
-                            cy: point[1],
-                            r: "1%",
-                            class: format!("plain_point {}", if smallest_circle.is_spanned_by(&point) { "spanning_point" } else { "" }),
-                            onclick: move |event| {
-                                event.stop_propagation();
-                                points.remove(i);
-                            }
-                        }
-                    })}
-                }
-            }
-        }
+        // In addition to element and text (which we will see later), rsx can contain other components. In this case,
+        // we are using the `document::Link` component to add a link to our favicon and main CSS file into the head of our app.
+        document::Link { rel: "icon", href: FAVICON }
+        document::Link { rel: "stylesheet", href: MAIN_CSS }
+
+
+        SmallestEnclosingCircleDemo {}
+
     }
 }
