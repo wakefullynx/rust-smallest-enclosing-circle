@@ -93,7 +93,6 @@ where
 ///
 /// ```
 /// use smallest_enclosing_circle::smallest_enclosing_circle;
-/// use smallest_enclosing_circle::predicates::in_circle::DefaultInCircle;
 ///
 /// // Input: Four corner points of square box of unit size
 /// let circle = smallest_enclosing_circle([[0., 0.], [1., 0.], [1., 1.], [0., 1.]]);
@@ -156,7 +155,6 @@ where
 ///
 /// ```
 /// use smallest_enclosing_circle::algorithm::smallest_enclosing_circle_recursive;
-/// use smallest_enclosing_circle::predicates::in_circle::DefaultInCircle;
 ///
 /// // Input: Four corner points of square box of unit size
 /// let circle = smallest_enclosing_circle_recursive([[0., 0.], [1., 0.], [1., 1.], [0., 1.]]);
